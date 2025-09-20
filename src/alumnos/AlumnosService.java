@@ -83,24 +83,7 @@ public class AlumnosService implements CRUD<Alumno> {
         return result;
     }
 
-//     public ArrayList<Alumno> requestSinGrupo() throws SQLException {
-//     ArrayList<Alumno> result = new ArrayList<>();
-//     Statement st = this.conn.createStatement();
-//     String sql = "SELECT id, nombre, apellidos, fecha_nac FROM alumnos WHERE grupo IS NULL";
-//     ResultSet rs = st.executeQuery(sql);
 
-//     while (rs.next()) {
-//         long id = rs.getLong("id");
-//         String nombre = rs.getString("nombre");
-//         String apellidos = rs.getString("apellidos");
-//         java.sql.Date fecha_nac = rs.getDate("fecha_nac");
-//         result.add(new Alumno(id, nombre, apellidos, fecha_nac, null));
-//     }
-
-//     rs.close();
-//     st.close();
-//     return result;
-// }
 
 
     public Alumno requestById(long id) throws SQLException {
@@ -129,11 +112,7 @@ public class AlumnosService implements CRUD<Alumno> {
 
     public long create(Alumno object) throws SQLException {
 
-        // Statement statement = null;
-        // statement = this.conn.createStatement();
-
-        // String sql = String.format("INSERT INTO alumnos (nombre, apellidos, grupo_id)
-        // VALUES ('%s', '%s', NULL)", nombre, apellidos);
+      
         String sqlaux = String.format("INSERT INTO alumnos (nombre, apellidos, fecha_nac, grupo) VALUES (?, ?, ?, ?)");
         PreparedStatement prepst = this.conn.prepareStatement(sqlaux, Statement.RETURN_GENERATED_KEYS);
 
@@ -151,8 +130,7 @@ public class AlumnosService implements CRUD<Alumno> {
             prepst.setNull(4, java.sql.Types.BIGINT);
 
         // Ejecución de la consulta
-        // int affectedRows =
-        // statement.executeUpdate(sql,Statement.RETURN_GENERATED_KEYS);
+       
         prepst.execute();
         ResultSet keys = prepst.getGeneratedKeys();
         if (keys.next()) {

@@ -22,14 +22,14 @@ public class GruposService implements CRUD<Grupo>{
         ArrayList<Grupo> result = new ArrayList<Grupo>();
         Statement statement = null;
         statement = this.conn.createStatement();
-        String sql = "SELECT id, nombre FROM grupos";
+        String sql = "SELECT id, nombre, id_tutor FROM grupos";
         // Ejecución de la consulta
         ResultSet querySet = statement.executeQuery(sql);
         // Recorrido del resultado de la consulta
         while(querySet.next()) {
             int id = querySet.getInt("id");
             String nombre = querySet.getString("nombre");
-            result.add(new Grupo(id, nombre));            
+            result.add(new Grupo(id, nombre, null));            
         } 
         statement.close();    
         return result;
@@ -39,13 +39,14 @@ public class GruposService implements CRUD<Grupo>{
         Statement statement = null;
         Grupo result = null;
         statement = this.conn.createStatement();    
-        String sql = String.format("SELECT id, nombre FROM grupos WHERE id=%d", id);
+        String sql = String.format("SELECT id, nombre, id_tutor FROM grupos WHERE id=%d", id);
         // Ejecución de la consulta
         ResultSet querySet = statement.executeQuery(sql);
         // Recorrido del resultado de la consulta
         if(querySet.next()) {
             String nombre = querySet.getString("nombre");
-            result = new Grupo(id, nombre);                                 
+            String id_tutor = querySet.getString("id_tutor");
+            result = new Grupo(id, nombre, id_tutor);
         }
         statement.close();    
         return result;
@@ -58,10 +59,10 @@ public class GruposService implements CRUD<Grupo>{
         //statement = this.conn.createStatement();    
         
         //String sql = String.format("INSERT INTO alumnos (nombre, apellidos, grupo_id) VALUES ('%s', '%s', NULL)", nombre, apellidos);
-        String sqlaux = String.format("INSERT INTO grupos (nombre) VALUES (?)");
+        String sqlaux = String.format("INSERT INTO grupos (nombre, id_tutor) VALUES (?, ?)");
         PreparedStatement prepst = this.conn.prepareStatement(sqlaux, Statement.RETURN_GENERATED_KEYS);
-        prepst.setString(1, object.getNombre());        
-        
+        prepst.setString(1, object.getNombre());   
+        prepst.setString(2, object.getId_tutor());
 
         // Ejecución de la consulta
         //int affectedRows = statement.executeUpdate(sql,Statement.RETURN_GENERATED_KEYS);
@@ -82,10 +83,11 @@ public class GruposService implements CRUD<Grupo>{
     public int update(Grupo object) throws SQLException{
         long id = object.getId();
         String nombre = object.getNombre();
-        
+        String id_tutor = object.getId_tutor();
+
         Statement statement = null;
         statement = this.conn.createStatement();    
-        String sql = String.format("UPDATE grupos SET nombre = '%s' WHERE id=%d", nombre, id);
+        String sql = String.format("UPDATE grupos SET nombre = '%s', id_tutor = '%s' WHERE id=%d", nombre, id_tutor, id);
         // Ejecución de la consulta
         int affectedRows = statement.executeUpdate(sql);
         statement.close();

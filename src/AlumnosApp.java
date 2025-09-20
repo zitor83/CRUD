@@ -39,25 +39,8 @@ public class AlumnosApp {
         System.out.println("1. Gestión de alumnos");
         System.out.println("2. Gestión de grupos");
         System.out.println("3. Salir");
-    }
-
-    private void mostrarMenuAlumnos() {
-        System.out.println("1. Listar alumnos");
-        System.out.println("2. Crear un alumno");
-        System.out.println("3. Actualizar un alumno");
-        System.out.println("4. Borrar un alumno");
-        System.out.println("5. Atrás");
-    }
-
-    private void mostrarMenuGrupos() {
-        System.out.println("1. Listar grupos");
-        System.out.println("2. Listar alumnos de un grupo");
-        System.out.println("3. Crear un grupo");
-        System.out.println("4. Actualizar un grupo");
-        System.out.println("5. Borrar un grupo");
-        System.out.println("6. Matricular alumno en grupo");
-        System.out.println("7. Atrás");
-
+        System.out.println();
+        System.out.print("Seleccione una opción: ");
     }
 
     private void mostrarSubmenu(int opcion) {
@@ -73,24 +56,26 @@ public class AlumnosApp {
         }
     }
 
-    private void listarAlumnosGrupo() {
-        try {
-            System.out.println("Listado de grupos");
-            for (Grupo gr : gruposSvc.requestAll()) {
-                System.out.println(gr);
-            }
-            System.out.print("Introduzca el grupo a listar: ");
-            Long grupo = Long.parseLong(System.console().readLine());
-            Grupo gr = gruposSvc.requestById(grupo);
-            System.out.println("Alumnos del grupo: " + gr.getNombre());
-            for (Alumno al : alumnosGrupoSvc.filtrarAlumnos(grupo)) {
-                System.out.println(al);
-            }
-            System.out.println("Pulse intro para continuar...");
-            System.console().readLine();
-        } catch (SQLException e) {
-            System.out.println("Ocurrió un error: " + e.getMessage());
-        }
+    private void mostrarMenuAlumnos() {
+        System.out.println("1. Listar alumnos");
+        System.out.println("2. Crear un alumno");
+        System.out.println("3. Actualizar un alumno");
+        System.out.println("4. Borrar un alumno");
+        System.out.println("5. Atrás");
+        System.out.println("");
+        System.out.print("Seleccione una opción: ");
+    }
+
+    private void mostrarMenuGrupos() {
+        System.out.println("1. Listar grupos");
+        System.out.println("2. Listar alumnos de un grupo");
+        System.out.println("3. Crear un grupo");
+        System.out.println("4. Actualizar un grupo");
+        System.out.println("5. Borrar un grupo");
+        System.out.println("6. Matricular alumno en grupo");
+        System.out.println("7. Atrás");
+        System.out.println("");
+        System.out.print("Seleccione una opción: ");
 
     }
 
@@ -100,8 +85,7 @@ public class AlumnosApp {
             for (Alumno al : alumnos) {
                 System.out.println(al);
             }
-            System.out.println("Pulsa intro para continuar...");
-            System.console().readLine();
+
         } catch (SQLException e) {
             System.out.println("Ocurrió un error: " + e.getMessage());
         }
@@ -109,22 +93,49 @@ public class AlumnosApp {
 
     private void crearAlumno() {
         try {
-            System.out.println("Introduzca el nombre:");
-            String nombre = System.console().readLine();
-            System.out.println("Introduzca el Apellido:");
-            String apellido = System.console().readLine();
-            System.out.print("Introduce la fecha de nacimiento (YYYY-MM-DD): ");
-            String fechaStr = System.console().readLine();
-            Date fecha_nac = Date.valueOf(fechaStr); // java.sql.Date
+            // Validar nombre y apellido no vacíos
+            String nombre;
+            do {
+                System.out.print(" Introduzca el nombre: ");
+                nombre = System.console().readLine();
+                if (nombre == null || nombre.trim().isEmpty()) {
+                    System.out.println(" El nombre no puede estar vacío. Por favor, introduzca un nombre válido.");
+                }
+            } while (nombre == null || nombre.trim().isEmpty());
+            String apellido;
+            do {
+                System.out.print(" Introduzca el apellido: ");
+                apellido = System.console().readLine();
+                if (apellido == null || apellido.trim().isEmpty()) {
+                    System.out.println(" El apellido no puede estar vacío. Por favor, introduzca un apellido válido.");
+                }
+            } while (apellido == null || apellido.trim().isEmpty());
+
+            // Validar fecha de nacimiento
+            Date fecha_nac;
+            do {
+                System.out.print("Introduce la fecha de nacimiento (YYYY-MM-DD): ");
+                String fechaStr = System.console().readLine();
+                try {
+                    fecha_nac = Date.valueOf(fechaStr);
+                } catch (IllegalArgumentException e) {
+                    System.out.println(
+                            " La fecha de nacimiento no es válida. Por favor, introduzca una fecha en formato YYYY-MM-DD.");
+                    fecha_nac = null;
+                }
+            } while (fecha_nac == null);
 
             Alumno al = new Alumno(0L, nombre, apellido, fecha_nac, null);
 
             Long nuevoid = alumnosSvc.create(al);
             al.setId(nuevoid);
+            System.out.println(" Nuevo alumno creado correctamente ");
             System.out.println(al);
-            System.out.println("Pulsa intro para continuar...");
-            System.console().readLine();
-        } catch (SQLException e) {
+
+            espaciadoPantalla();
+        } catch (
+
+        SQLException e) {
             System.out.println("Ocurrió un error: " + e.getMessage());
         }
 
@@ -132,34 +143,99 @@ public class AlumnosApp {
 
     private void modificarAlumno() {
         try {
-            System.out.print("Introduzca el id: ");
-            Long id = Long.parseLong(System.console().readLine());
+            // Validar que el ID existe para que no de error
+            Alumno alumno = null;
+            Long id = null;
+            listarAlumnos();
+            System.out.println("");
+            while (alumno == null) {
+                try {
+                    System.out.print("Introduzca el id del alumno a modificar: ");
+                    id = Long.parseLong(System.console().readLine());
+                    alumno = alumnosSvc.requestById(id);
 
-            Alumno alumno = alumnosSvc.requestById(id);
+                    if (alumno == null) {
+                        System.out.println(" El ID " + id + " no existe. Intentelo de nuevo.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("Debe introducir un número válido.");
+                }
+            }
 
             System.out.println("Actualizarás el alumno con ID " + id);
             System.out.println(alumno);
 
-            System.out.print("Nombre: ");
+            System.out.print("Nuevo Nombre(pulse enter para mantener actual): ");
             String nombre = System.console().readLine();
-            System.out.print("Apellidos: ");
+            if (nombre.isBlank())
+                nombre = alumno.getNombre();
+            System.out.print("Nuevos Apellidos(pulse enter para mantener actual): ");
             String apellidos = System.console().readLine();
-            System.out.println("Fecha de nacimiento (YYYY-MM-DD):");
+            if (apellidos.isBlank())
+                apellidos = alumno.getApellidos();
 
-            String fechaStr = System.console().readLine();
-            Date fechaNac = Date.valueOf(fechaStr); // java.sql.Date
+            // Validar fecha de nacimiento para que no de error
+            Date fecha_nac = null;
+            do {
+                System.out.print("Introduce la fecha de nacimiento (YYYY-MM-DD) (pulse enter para mantener actual): ");
+                String fechaStr = System.console().readLine();
+                if (fechaStr.isBlank()) {
+                    fecha_nac = alumno.getFecha_nac();
+                    break;
+                }
+                try {
+                    fecha_nac = Date.valueOf(fechaStr);
+                } catch (IllegalArgumentException e) {
+                    System.out.println(
+                            " La fecha de nacimiento no es válida. Por favor, introduzca una fecha en formato YYYY-MM-DD o pulse enter para mantener la actual.");
+                    fecha_nac = null;
+                }
+            } while (fecha_nac == null);
 
-            System.out.println("Grupo:");
-            Long grupo = Long.parseLong(System.console().readLine());
+            Long grupo = null;
+            do {
+                System.out.println("Listado de Grupos disponibles:");
+                listarGrupos();
+
+                // }
+
+                System.out.println(
+                        "Pulse Enter para mantener el grupo actual, o introduzca el ID de un grupo disponible:");
+                String grupoStr = System.console().readLine();
+
+                if (grupoStr.isBlank()) {
+                    grupo = alumno.getGrupo(); // mantener actual
+                    break;
+                }
+
+                try {
+                    Long grupoId = Long.parseLong(grupoStr);
+
+                    // Validar que el grupo existe en la BD
+                    Grupo grupoBD = gruposSvc.requestById(grupoId);
+                    if (grupoBD != null) {
+                        grupo = grupoId; // existe y salimos del bucle
+                    } else {
+                        System.out.println("El grupo con ID " + grupoId + " no existe. Inténtelo de nuevo.");
+                        grupo = null; // repetir bucle por grupo no existente
+                    }
+
+                } catch (NumberFormatException e) {
+                    System.out.println(" Entrada no válida. Introduzca un número o pulse Enter.");
+                    grupo = null; // repetir bucle por error de formato
+                }
+
+            } while (grupo == null);
 
             alumno.setNombre(nombre);
             alumno.setApellidos(apellidos);
-            alumno.setFecha_nac(fechaNac);
+            alumno.setFecha_nac(fecha_nac);
             alumno.setGrupo(grupo);
-            System.out.println("El alumno actualizado es:");
+            alumnosSvc.update(alumno);
+
+            System.out.println("Alumno actualizado correctamente:");
             System.out.println(alumno);
-            System.out.println("Pulsa intro para continuar...");
-            System.console().readLine();
+            espaciadoPantalla();
 
         } catch (SQLException e) {
             System.out.println("Ocurrió un error: " + e.getMessage());
@@ -169,27 +245,42 @@ public class AlumnosApp {
 
     private void borrarAlumno() {
         try {
-            System.out.println("Introduzca el id a borrar: ");
-            Long id = Long.parseLong(System.console().readLine());
+            Long id = null;
+            do {
+                listarAlumnos();
+                System.out.print("Introduzca el ID del alumno a borrar: ");
+                try {
+                    id = Long.parseLong(System.console().readLine());
+                } catch (NumberFormatException e) {
+                    System.out.println("El ID debe ser un número válido.");
+                }
+            } while (id == null);
+
             Alumno alumno = alumnosSvc.requestById(id);
-            System.out.println("El alumno a borrar es: " + alumno);
-            System.out.println("¿Está seguro? (S/N)");
-            String confirmacion = System.console().readLine();
-            if (confirmacion.equalsIgnoreCase("S")) {
-                if (alumnosSvc.delete(id))
-                    System.out.println("El alumno se ha eliminado");
-                else
-                    System.out.println("Ha ocurrido un error");
-            } else {
-                System.out.println("Operación cancelada");
+            if (alumno == null) {
+                System.out.println("No existe ningún alumno con el ID " + id);
+
+                return;
             }
-            System.out.println("Pulsa intro para continuar...");
-            System.console().readLine();
 
+            System.out.println("El alumno a borrar es: " + alumno);
+            System.out.print("¿Está seguro? (S/N): ");
+            String confirmacion = System.console().readLine().trim();
+
+            if (confirmacion.equalsIgnoreCase("S")) {
+                if (alumnosSvc.delete(id)) {
+                    System.out.println("El alumno ha sido eliminado.");
+                } else {
+                    System.out.println("No se pudo eliminar el alumno.");
+                }
+            } else {
+                System.out.println("Operación cancelada.");
+            }
+
+            espaciadoPantalla();
         } catch (SQLException e) {
-            System.out.println("Ocurrió un error: " + e.getMessage());
+            System.out.println("Ocurrió un error al borrar: " + e.getMessage());
         }
-
     }
 
     private void listarGrupos() {
@@ -197,57 +288,152 @@ public class AlumnosApp {
             ArrayList<Grupo> grupos = gruposSvc.requestAll();
             for (Grupo gr : grupos) {
                 System.out.println(gr);
+
             }
-            System.out.println("Pulsa intro para continuar...");
-            System.console().readLine();
+
         } catch (SQLException e) {
             System.out.println("Ocurrió un error: " + e.getMessage());
         }
+        espaciadoPantalla();
     }
-private void crearGrupo() {
+
+    private void listarAlumnosGrupo() {
         try {
-            System.out.println("Introduzca el nombre del grupo:");
-            String nombre = System.console().readLine();
+            System.out.println("Listado de grupos disponibles:");
+            System.out.println("ID: 0 - Sin grupo"); // opción especial
+            listarGrupos();
 
+            Long grupoId = null;
 
-            Grupo gr = new Grupo(0L, nombre);
+            do {
+                System.out.print("Introduzca el ID del grupo a listar (0 para alumnos sin grupo): ");
+                String entrada = System.console().readLine();
+
+                try {
+                    grupoId = Long.parseLong(entrada);
+                } catch (NumberFormatException e) {
+                    System.out.println("El ID debe ser un número. Inténtelo de nuevo.");
+                    grupoId = null;
+                }
+            } while (grupoId == null);
+
+            ArrayList<Alumno> alumnos;
+
+            if (grupoId == 0L) { // listar sin grupo
+                alumnos = alumnosGrupoSvc.filtrarAlumnos(null);
+                System.out.println("Alumnos sin grupo:");
+            } else {
+                Grupo gr = gruposSvc.requestById(grupoId);
+                if (gr == null) {
+                    System.out.println("No existe ningún grupo con el ID " + grupoId);
+                    espaciadoPantalla();
+                    return;
+                }
+                alumnos = alumnosGrupoSvc.filtrarAlumnos(grupoId);
+                System.out.println("Alumnos del grupo: " + gr.getNombre());
+            }
+
+            if (alumnos.isEmpty()) {
+                System.out.println("No hay alumnos en este grupo.");
+            } else {
+                for (Alumno al : alumnos) {
+                    System.out.println(al);
+                }
+            }
+
+            espaciadoPantalla();
+
+        } catch (SQLException e) {
+            System.out.println("Ocurrió un error al listar alumnos del grupo: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado: " + e.getMessage());
+        }
+    }
+
+    private void crearGrupo() {
+        try {
+            String nombre = null;
+            do {
+                System.out.print("Introduzca el nombre del grupo: ");
+                nombre = System.console().readLine();
+                if (nombre == null || nombre.trim().isEmpty()) {
+                    System.out.println("El nombre del grupo no puede estar vacío. Inténtelo de nuevo.");
+                }
+            } while (nombre == null || nombre.trim().isEmpty());
+
+            Grupo gr = new Grupo(0L, nombre, null); // tutor opcional, null por defecto
 
             Long nuevoid = gruposSvc.create(gr);
             gr.setId(nuevoid);
+
+            System.out.println("Nuevo grupo creado correctamente:");
             System.out.println(gr);
 
-            System.out.println("Pulsa intro para continuar...");
-            System.console().readLine();
-        } catch (SQLException e) {
-            System.out.println("Ocurrió un error: " + e.getMessage());
-        }
+            espaciadoPantalla();
 
+        } catch (SQLException e) {
+            System.out.println("Ocurrió un error al crear el grupo: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado: " + e.getMessage());
+        }
     }
 
-private void actualizarGrupo() {
+    private void actualizarGrupo() {
         try {
-            System.out.print("Introduzca el id del grupo a modificar: ");
-            Long id = Long.parseLong(System.console().readLine());
+            Long id = null;
+            do {
+                System.out.println("Listado de grupos:");
+
+                listarGrupos();
+                System.out.print("Introduzca el id del grupo a modificar: ");
+                String entrada = System.console().readLine();
+                try {
+                    id = Long.parseLong(entrada);
+                } catch (NumberFormatException e) {
+                    System.out.println("El ID debe ser un número válido. Inténtelo de nuevo.");
+                    id = null;
+                }
+            } while (id == null);
 
             Grupo grupo = gruposSvc.requestById(id);
+            if (grupo == null) {
+                System.out.println("No existe ningún grupo con ID " + id);
+                espaciadoPantalla();
+                return;
+            }
 
             System.out.println("Actualizarás el grupo con ID " + id);
             System.out.println(grupo);
 
-            System.out.print("Nombre del grupo: ");
-            String nombre = System.console().readLine();
+            // Actualizar nombre
+            String nombre;
+            do {
+                System.out.print("Nombre del grupo (Enter para mantener actual): ");
+                nombre = System.console().readLine();
+                if (nombre.isBlank()) {
+                    nombre = grupo.getNombre();
+                    break;
+                }
+            } while (nombre.isBlank());
+
+            // Actualizar tutor
+            System.out.print("ID del tutor (Enter para mantener actual): ");
+            String idTutorEntrada = System.console().readLine();
+            String idTutor = idTutorEntrada.isBlank() ? grupo.getId_tutor() : idTutorEntrada;
 
             grupo.setNombre(nombre);
+            grupo.setId_tutor(idTutor);
+            gruposSvc.update(grupo);
 
-            System.out.println("El grupo actualizado es:");
+            System.out.println("Grupo actualizado correctamente:");
             System.out.println(grupo);
-            System.out.println("Pulsa intro para continuar...");
-            System.console().readLine();
+            espaciadoPantalla();
 
         } catch (SQLException e) {
             System.out.println("Ocurrió un error: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("Error inesperado: " + e.getMessage());
         }
-
     }
 
     private void borrarGrupo() {
@@ -260,14 +446,13 @@ private void actualizarGrupo() {
             String confirmacion = System.console().readLine();
             if (confirmacion.equalsIgnoreCase("S")) {
                 if (gruposSvc.delete(id))
-                    System.out.println("El grupo se ha eliminado");
+                    System.out.println("El grupo ha sido eliminado");
                 else
                     System.out.println("Ha ocurrido un error");
             } else {
                 System.out.println("Operación cancelada");
             }
-            System.out.println("Pulsa intro para continuar...");
-            System.console().readLine();
+            espaciadoPantalla();
 
         } catch (SQLException e) {
             System.out.println("Ocurrió un error: " + e.getMessage());
@@ -277,50 +462,100 @@ private void actualizarGrupo() {
 
     private void matricularAlumno() {
         try {
-            System.out.println("Listado de alumnos: ");
-            ArrayList<Alumno> alumnos = alumnosSvc.requestAll();
-            for (Alumno al : alumnos) {
-                System.out.println(al);
+            Alumno al = null;
+            // Selección de alumno
+            while (al == null) {
+                System.out.println("Listado de alumnos:");
+                listarAlumnos();
+                System.out.print("Indique el ID del alumno a matricular: ");
+                String entrada = System.console().readLine();
+                try {
+                    Long idAlumno = Long.parseLong(entrada);
+                    al = alumnosSvc.requestById(idAlumno);
+                    if (al == null) {
+                        System.out.println("No existe ningún alumno con ese ID. Inténtelo de nuevo.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("El ID debe ser un número. Inténtelo de nuevo.");
+                }
             }
-            System.out.println("Indique el identificador del alumno a matricular: ");
-            Long id = Long.parseLong(System.console().readLine());
-            Alumno al = alumnosSvc.requestById(id);
-            System.out.println("Listado de grupos");
-            ArrayList<Grupo> grupos = gruposSvc.requestAll();
-            for (Grupo gr : grupos) {
-                System.out.println(gr);
+
+            Grupo gr = null;
+            // Selección de grupo
+            while (gr == null) {
+                System.out.println("Listado de grupos:");
+                listarGrupos();
+                System.out.print("Introduzca el ID del grupo donde se va a matricular: ");
+                String entrada = System.console().readLine();
+                try {
+                    Long idGrupo = Long.parseLong(entrada);
+                    gr = gruposSvc.requestById(idGrupo);
+                    if (gr == null) {
+                        System.out.println("No existe ningún grupo con ese ID. Inténtelo de nuevo.");
+                    }
+                } catch (NumberFormatException e) {
+                    System.out.println("El ID debe ser un número. Inténtelo de nuevo.");
+                }
             }
-            System.out.println("Introduzca el id del grupo donde se va a matricular");
-            id = Long.parseLong(System.console().readLine());
-            Grupo gr = gruposSvc.requestById(id);
+
+            // Asignación del grupo
             al.setGrupo(gr.getId());
-            if (al != null) {
-                alumnosSvc.update(al);
+
+            // Actualización
+            if (alumnosSvc.update(al) > 0) {
+                System.out.println("Alumno matriculado correctamente:");
+                System.out.println(al);
+            } else {
+                System.out.println("Error: no se pudo matricular al alumno.");
             }
 
         } catch (SQLException e) {
-
+            System.out.println("Ocurrió un error al matricular el alumno: " + e.getMessage());
         }
     }
 
-    private int leerOpcion() {
-        return Integer.parseInt(System.console().readLine());
+    private int leerOpcion(String mensaje, int min, int max) { // método genérico para leer opción numérica con
+                                                               // validación
+        int opcion = -1;
+        do {
+            System.out.print(mensaje);
+            String entrada = System.console().readLine();
+            try {
+                opcion = Integer.parseInt(entrada);
+                if (opcion < min || opcion > max) {
+                    System.out.println("Número fuera de rango. Introduzca un número entre " + min + " y " + max + ".");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Entrada inválida. Introduzca un número entre " + min + " y " + max + ".");
+            }
+        } while (opcion < min || opcion > max);
+        return opcion;
     }
+
+    private void espaciadoPantalla() {
+        System.out.println("");
+        System.out.println("");
+        System.out.println("Pulsa intro para continuar...");
+        System.out.println("");
+        System.console().readLine();
+    }
+    
 
     public void init() {
         boolean salir = false;
         boolean salirSubmenu = false;
-        int opcion1 = 1;
-        int opcion2 = 1;
+
         while (!salir) {
             mostrarMenu();
-            opcion1 = leerOpcion();
+            int opcion1 = leerOpcion("Seleccione una opción: ", 1, 3);
+
             switch (opcion1) {
                 case 1:
                     salirSubmenu = false;
                     while (!salirSubmenu) {
                         mostrarSubmenu(opcion1);
-                        opcion2 = leerOpcion();
+                        int opcion2 = leerOpcion("Seleccione una opción: ", 1, 5);
+
                         switch (opcion2) {
                             case 1:
                                 listarAlumnos();
@@ -338,7 +573,7 @@ private void actualizarGrupo() {
                                 salirSubmenu = true;
                                 break;
                             default:
-                                System.out.println("Opción incorrecta");
+                                System.out.println("Opción incorrecta. Elija una opción del 1 al 5");
                         }
                     }
 
@@ -347,7 +582,8 @@ private void actualizarGrupo() {
                     salirSubmenu = false;
                     while (!salirSubmenu) {
                         mostrarSubmenu(opcion1);
-                        opcion2 = leerOpcion();
+                        int opcion2 = leerOpcion("Seleccione una opción: ", 1, 7);
+
                         switch (opcion2) {
                             case 1:
                                 listarGrupos();
@@ -371,55 +607,17 @@ private void actualizarGrupo() {
                                 salirSubmenu = true;
                                 break;
                             default:
-                                System.out.println("Opción incorrecta");
+                                System.out.println("Opción incorrecta. Elija una opción del 1 al 7");
                         }
                     }
                     break;
                 case 3:
+                    salir = true;
                     break;
                 default:
-                    System.out.println("Opción incorrecta");
+                    System.out.println("Opción incorrecta. Elija una opción del 1 al 3.");
             }
         }
-        /*
-         * System.out.println("Hello, World!");
-         * 
-         * Connection conn = pool.getConnection();
-         * AlumnosService alumnosSvc = new AlumnosService(conn);
-         * ArrayList<Alumno> alumnos = alumnosSvc.requestAll();
-         * for(Alumno alumno: alumnos){
-         * System.out.println(alumno);
-         * }
-         * 
-         * Alumno al = new Alumno(0, "bartolo", "vaquero", null);
-         * Long nuevoid = alumnosSvc.create(al);
-         * al.setId(nuevoid);
-         * System.out.println(al);
-         * 
-         * System.out.print("Introduzca el id: ");
-         * Long id = Long.parseLong(System.console().readLine());
-         * Alumno alumno = alumnosSvc.requestById(id);
-         * System.out.println(alumno);
-         * 
-         * System.out.println("Acutaliza alumno 1:");
-         * System.out.print("Nombre: ");
-         * String nombre = System.console().readLine();
-         * System.out.print("Apellidos: ");
-         * String apellidos = System.console().readLine();
-         * alumno = new Alumno(1, nombre, apellidos, null);
-         * alumno.setId(alumnosSvc.update(alumno));
-         * System.out.println("El alumno actualizado es:");
-         * System.out.println(alumno);
-         * 
-         * System.out.println("Introduzca el id a borrar: ");
-         * id = Long.parseLong(System.console().readLine());
-         * if(alumnosSvc.delete(id))
-         * System.out.println("El alumno se ha eliminado");
-         * else
-         * System.out.println("Ha ocurrido un error");
-         * conn.close();
-         * pool.closeAll();
-         */
 
     }
 }
