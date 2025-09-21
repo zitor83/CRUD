@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import alumnos.Alumno;
 import alumnos.AlumnosGrupoService;
 import alumnos.AlumnosService;
+
 import grupos.GruposService;
 import grupos.Grupo;
 
@@ -126,7 +127,6 @@ public class AlumnosApp {
             } while (fecha_nac == null);
 
             Alumno al = new Alumno(0L, nombre, apellido, fecha_nac, null);
-
             Long nuevoid = alumnosSvc.create(al);
             al.setId(nuevoid);
             System.out.println(" Nuevo alumno creado correctamente ");
