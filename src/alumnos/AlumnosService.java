@@ -17,34 +17,7 @@ public class AlumnosService implements CRUD<Alumno> {
         this.conn = conn;
     }
 
-    /*
-     * public ArrayList<Alumno> requestAll() throws SQLException{
-     * ArrayList<Alumno> result = new ArrayList<Alumno>();
-     * Statement statement = null;
-     * statement = this.conn.createStatement();
-     * String sql = "SELECT id, nombre, apellidos, fecha_nac, grupo FROM alumnos";
-     * // Ejecución de la consulta
-     * ResultSet querySet = statement.executeQuery(sql);
-     * // Recorrido del resultado de la consulta
-     * while(querySet.next()) {
-     * int id = querySet.getInt("id");
-     * String nombre = querySet.getString("nombre");
-     * String apellidos = querySet.getString("apellidos");
-     * long grupo = querySet.getInt("grupo");
-     * try{
-     * Date fecha_nac = querySet.getDate("fecha_nac");
-     * result.add(new Alumno(id, nombre, apellidos, fecha_nac,
-     * grupo==0?null:grupo));
-     * } catch (Exception e) {
-     * result.add(new Alumno(id, nombre, apellidos, null, grupo==0?null:grupo));
-     * }
-     * 
-     * 
-     * }
-     * statement.close();
-     * return result;
-     * }
-     */
+    
     public ArrayList<Alumno> requestAll() throws SQLException {
         ArrayList<Alumno> result = new ArrayList<>();
         Statement statement = this.conn.createStatement();
